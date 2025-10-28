@@ -1,48 +1,15 @@
-
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 import subprocess
 import logging
+import os
+from telemetry.tracing import trace_span
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-
-# Mount the static files before other routes
-from fastapi.staticfiles import StaticFiles
-app.mount("/", StaticFiles(directory="frontend/out", html=True), name="static")
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Start all background processes and initialize the agent.
-    """
-    # Start the telemetry server
-    logger.info("Starting telemetry server...")
-    try:
-        # Assuming telemetry_server.py is in a directory that can be found.
-        # We will refine this path later.
-        subprocess.Popen(["python", os.path.join(os.path.dirname(__file__), "telemetry", "telemetry_server.py")])
-        logger.info("Telemetry server started.")
-    except FileNotFoundError:
-        logger.error("Could not find telemetry_server.py. Make sure the path is correct.")
-        # Handle the error appropriately
-    except Exception as e:
-        logger.error(f"Failed to start telemetry server: {e}")
-        # Handle the error appropriately
-
-    # Initialize the agent
-    logger.info("Initializing agent...")
-    # Placeholder for agent initialization
-    logger.info("✅ Agent ready")
-
-
-
-import os
-from fastapi import Response
-from telemetry.tracing import trace_span
 
 LOG_FILE = os.path.join('telemetry', 'mcp-activity.log')
 
@@ -84,7 +51,7 @@ def format_response(llm_response: str):
     Placeholder for formatting the response.
     """
     logger.info(f"Formatting response: {llm_response}")
-    return {"response": llm_response}
+    return {"result": llm_response}
 
 @app.post("/query")
 async def query_agent(query: dict):
@@ -100,6 +67,30 @@ async def query_agent(query: dict):
     response = format_response(llm_response)
     
     return response
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Start all background processes and initialize the agent.
+    """
+    # Start the telemetry server
+    logger.info("Starting telemetry server...")
+    try:
+        subprocess.Popen(["python", os.path.join(os.path.dirname(__file__), "telemetry", "telemetry_server.py")])
+        logger.info("Telemetry server started.")
+    except FileNotFoundError:
+        logger.error("Could not find telemetry_server.py. Make sure the path is correct.")
+    except Exception as e:
+        logger.error(f"Failed to start telemetry server: {e}")
+
+    # Initialize the agent
+    logger.info("Initializing agent...")
+    # Placeholder for agent initialization
+    logger.info("✅ Agent ready")
+
+# Mount the static files at the end
+from fastapi.staticfiles import StaticFiles
+app.mount("/", StaticFiles(directory="frontend/out", html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
