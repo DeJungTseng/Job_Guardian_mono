@@ -1,26 +1,31 @@
-# 忽略 venv
+# === Python ===
 .venv/
 venv/
 ENV/
 env/
-
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
-
-# Jupyter checkpoints
-.ipynb_checkpoints/
-# Python virtual environments
-.venv/
-__pycache__/
-*.pyc
-
-# OS / editor junk
-.DS_Store
+*.pyd
 *.log
+.ipynb_checkpoints/
 
-# WSL temp
+# === Node / Next.js ===
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/.vercel/
+
+# === Telemetry logs ===
+telemetry/*.log
+telemetry/*.jsonl
+
+# === OS / Editor ===
+.DS_Store
+Thumbs.db
 *.swp
+*.swo
 
+# === Secrets ===
 /mcp_basic_google_agent/mcp_agent.secrets.yaml
