@@ -37,6 +37,15 @@ class JsonlFormatter(logging.Formatter):
 file_handler.setFormatter(JsonlFormatter())
 logger.addHandler(file_handler)
 
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+
+def get_exporter():
+    """
+    Returns a span exporter.
+    """
+    return ConsoleSpanExporter()
+
+
 def get_logger(name):
     """
     Returns a logger instance with the specified name.
