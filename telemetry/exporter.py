@@ -1,59 +1,70 @@
 
+
+
 import logging
+
 import json
-from rich.logging import RichHandler
-import os
 
-# Create the telemetry directory if it doesn't exist
-if not os.path.exists('telemetry'):
-    os.makedirs('telemetry')
+import queue
 
-log_file_path = os.path.join('telemetry', 'mcp-activity.log')
+from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 
-# Configure the logger
-logging.basicConfig(
-    level="INFO",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)]
-)
+from opentelemetry.trace import Span
 
-logger = logging.getLogger("rich")
 
-# Add a file handler to log to a JSONL file
-file_handler = logging.FileHandler(log_file_path)
 
-class JsonlFormatter(logging.Formatter):
-    def format(self, record):
-        log_record = {
-            "level": record.levelname,
-            "name": record.name,
-            "message": record.getMessage(),
-        }
-        if isinstance(record.args, dict):
-            log_record["data"] = record.args
-        return json.dumps(log_record)
+# Create a queue to hold log messages
 
-file_handler.setFormatter(JsonlFormatter())
-logger.addHandler(file_handler)
+log_queue = queue.Queue()
 
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+
+
+logger = logging.getLogger("telemetry_logger")
+
+
+
+class QueueSpanExporter(SpanExporter):
+
+    def __init__(self):
+
+        super().__init__()
+
+
+
+    def export(self, spans: list[Span]) -> SpanExportResult:
+
+        for span in spans:
+
+            log_queue.put(span.to_json())
+
+        return SpanExportResult.SUCCESS
+
+
+
+    def shutdown(self):
+
+        pass
+
+
 
 def get_exporter():
+
     """
+
     Returns a span exporter.
+
     """
-    return ConsoleSpanExporter()
+
+    return QueueSpanExporter()
 
 
-def get_logger(name):
+
+def get_logger():
+
     """
+
     Returns a logger instance with the specified name.
-    """
-    return logging.getLogger(name)
 
-# Example usage:
-if __name__ == '__main__':
-    main_logger = get_logger("MCPAggregator.job_guardian")
-    main_logger.info("Requesting tool call", {'tool_name': 'some_tool', 'server_name': 'some_server'})
-    main_logger.info("Another log message")
+    """
+
+    return logger

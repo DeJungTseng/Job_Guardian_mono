@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
+
 
 from pydantic import BaseModel
 from mcp_agent.app import MCPApp
@@ -62,7 +62,9 @@ agent_state = {"ready": False, "agent": None, "llm": None, "logs": []}
 async def startup_event():
     # 啟動 telemetry server
     telemetry_server_path = os.path.join(os.path.dirname(__file__), "telemetry", "telemetry_server.py")
-    subprocess.Popen([sys.executable, telemetry_server_path])
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.abspath(os.path.dirname(__file__))
+    subprocess.Popen([sys.executable, telemetry_server_path], env=env)
     agent_state["logs"].append("📡 Telemetry server started.")
 
     setup_telemetry("job_guardian_backend")
