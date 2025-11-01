@@ -15,7 +15,7 @@ export default function Page() {
 
       {/* 下方區塊：Telemetry iframe */}
       <div className="flex w-full items-center justify-center bg-white p-4">
-        <div className="h-[180px] w-[1000px] flex items-center justify-center">
+        <div className="h-[150px] w-[1000px] flex items-center justify-center">
           <TelemetryStream />
         </div>
       </div>

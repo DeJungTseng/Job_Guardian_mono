@@ -120,7 +120,7 @@ const ThreadWelcome: FC = () => {
             exit={{ opacity: 0, y: 10 }}
             className="aui-thread-welcome-message-motion-1 text-2xl font-semibold"
           >
-            Hello there!
+            Job Guardian
           </m.div>
           <m.div
             initial={{ opacity: 0, y: 10 }}
@@ -129,7 +129,7 @@ const ThreadWelcome: FC = () => {
             transition={{ delay: 0.1 }}
             className="aui-thread-welcome-message-motion-2 text-2xl text-muted-foreground/65"
           >
-            How can I help you today?
+            Your AI career assistant for salary, benefits, and company records.
           </m.div>
         </div>
       </div>
@@ -143,24 +143,24 @@ const ThreadSuggestions: FC = () => {
     <div className="aui-thread-welcome-suggestions grid w-full gap-2 pb-4 @md:grid-cols-2">
       {[
         {
-          title: "查薪資福利",
-          label: "想在誠品生活上班?",
-          action: "查誠品生活的薪資福利",
+          title: "Introduction",
+          label: "如何使用？",
+          action: "向使用者介紹如何使用Job Guardian查詢薪資福利、違反勞基法與性別平等工作法紀錄 ",
         },
         {
-          title: "查違反勞基法",
-          label: "以誠品生活為例",
-          action: "查誠品生活是否有違反勞基法的紀錄",
+          title: "Labor Law Check",
+          label: "「請問誠品生活有沒有違反勞基法紀錄?」",
+          action: "查詢誠品生活是否有違反《勞動基準法》的紀錄",
         },
         {
-          title: "查違反性平工作法",
-          label: "以誠品生活為例",
-          action: "查誠品生活是否有違反性平工作法的紀錄",
+          title: "Gender Equality Check",
+          label: "「請問誠品生活有沒有違反性平工作法紀錄?」",
+          action: "查詢誠品生活是否有違反《性別工作平等法》的紀錄",
         },
         {
-          title: "晚餐吃甚麼",
-          label: "不想發胖",
-          action: "我要吃甚麼才不會發胖",
+          title: "Salary & Benefits",
+          label: "「查詢誠品生活的薪資福利」",
+          action: "查詢誠品生活的薪資、女性主管比例與員工福利資訊",
         },
       ].map((suggestedAction, index) => (
         <m.div
