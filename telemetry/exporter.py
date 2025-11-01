@@ -69,21 +69,22 @@ class MCPActivityExporter(SpanExporter):
             # 📦 組出 log prefix
             prefix = f"[{level}] {datetime.utcnow().isoformat(timespec='seconds')} {span.name}"
 
-            # 🧾 美化 attributes
-            pretty_json = json.dumps(
-                {"data": attrs},
-                indent=2,
+            # 🧾 美化 attributes 並組合成單一 JSON 物件
+            log_data_json = json.dumps(
+                {
+                    "prefix": prefix,
+                    "data": attrs
+                },
                 ensure_ascii=False
             )
-            syntax = Syntax(pretty_json, "json", theme="ansi_dark", word_wrap=True)
+            syntax = Syntax(log_data_json, "json", theme="ansi_dark", word_wrap=True)
 
             # ✅ 終端輸出（Render log 也支援 Rich）
             console.print(prefix)
             console.print(syntax)
 
             # ✅ 寫入檔案（純文字方便 iframe 讀取）
-            log_entry = f"{prefix}\n{pretty_json}\n"
-            log_lines.append(log_entry)
+            log_lines.append(log_data_json)
 
         # 附加寫入檔案
         if log_lines:

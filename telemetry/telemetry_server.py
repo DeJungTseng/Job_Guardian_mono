@@ -4,8 +4,17 @@ from fastapi.responses import StreamingResponse
 import asyncio
 import os
 import aiofiles
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "mcp-activity.log")
 
@@ -21,14 +30,21 @@ async def stream_telemetry():
                 f.write("") # Create an empty file
 
         async with aiofiles.open(LOG_FILE_PATH, mode="r") as f:
-            # Seek to the end of the file to only read new lines
-            await f.seek(0, os.SEEK_END)
+            current_position = await f.tell()
             while True:
-                line = await f.readline()
-                if line:
-                    yield f"data: {line}\n\n"
-                else:
-                    await asyncio.sleep(0.1)  # Wait for new lines
+                await asyncio.sleep(0.1)  # Wait for new lines
+                # Check if the file has grown
+                new_size = os.path.getsize(LOG_FILE_PATH)
+                if new_size > current_position:
+                    await f.seek(current_position) # Seek to the last known position
+                    line = await f.readline()
+                    while line:
+                        yield f"data: {line.strip()}\n\n"
+                        current_position = await f.tell()
+                        line = await f.readline()
+                elif new_size < current_position: # File was truncated or reset
+                    await f.seek(0)
+                    current_position = 0
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

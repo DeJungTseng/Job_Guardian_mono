@@ -66,8 +66,15 @@ async def startup_event():
     telemetry_server_path = os.path.join(os.path.dirname(__file__), "telemetry", "telemetry_server.py")
     env = os.environ.copy()
     env["PYTHONPATH"] = os.path.abspath(os.path.dirname(__file__))
-    subprocess.Popen([sys.executable, telemetry_server_path], env=env)
-    agent_state["logs"].append("📡 Telemetry server started.")
+    with open("telemetry_server_stdout.log", "w") as stdout_file, \
+         open("telemetry_server_stderr.log", "w") as stderr_file:
+        subprocess.Popen(
+            [sys.executable, telemetry_server_path],
+            env=env,
+            stdout=stdout_file,
+            stderr=stderr_file,
+        )
+    agent_state["logs"].append("📡 Telemetry server started. Check telemetry_server_stdout.log and telemetry_server_stderr.log for details.")
 
     setup_telemetry("job_guardian_backend")
     asyncio.create_task(start_agent())  # 背景啟動

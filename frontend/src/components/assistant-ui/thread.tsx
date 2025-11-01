@@ -48,7 +48,7 @@ const ThreadHeader: FC = () => {
       </TooltipIconButton>
 
       <Button variant="ghost" className="flex items-center gap-1">
-        <span>GPT-4o-mini</span>
+        <span>Gemini-2.0-flash</span>
         <ChevronDownIcon className="size-4" />
       </Button>
 
@@ -143,24 +143,24 @@ const ThreadSuggestions: FC = () => {
     <div className="aui-thread-welcome-suggestions grid w-full gap-2 pb-4 @md:grid-cols-2">
       {[
         {
-          title: "What's the weather",
-          label: "in San Francisco?",
-          action: "What's the weather in San Francisco?",
+          title: "查薪資福利",
+          label: "想在誠品生活上班?",
+          action: "查誠品生活的薪資福利",
         },
         {
-          title: "Explain React hooks",
-          label: "like useState and useEffect",
-          action: "Explain React hooks like useState and useEffect",
+          title: "查違反勞基法",
+          label: "以誠品生活為例",
+          action: "查誠品生活是否有違反勞基法的紀錄",
         },
         {
-          title: "Write a SQL query",
-          label: "to find top customers",
-          action: "Write a SQL query to find top customers",
+          title: "查違反性平工作法",
+          label: "以誠品生活為例",
+          action: "查誠品生活是否有違反性平工作法的紀錄",
         },
         {
-          title: "Create a meal plan",
-          label: "for healthy weight loss",
-          action: "Create a meal plan for healthy weight loss",
+          title: "晚餐吃甚麼",
+          label: "不想發胖",
+          action: "我要吃甚麼才不會發胖",
         },
       ].map((suggestedAction, index) => (
         <m.div
