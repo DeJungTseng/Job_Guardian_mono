@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
+from google.genai import types
+
 
 
 from pydantic import BaseModel
@@ -117,10 +119,16 @@ def receive_prompt(user_query: str):
 @trace_span("llm_tool_call_and_synthesis")
 async def execute_llm_generation(llm, user_query: str) -> str:
     """Calls the LLM to generate a response using tools."""
-    result = await llm.generate_str(
+    contents = await llm.generate(
         message=f"根據輸入內容「{user_query}」，請查詢對應的公司紀錄並回傳總結。"
     )
-    return result
+
+    # Extract the text from the last content part
+    if contents and contents[-1] and contents[-1].parts:
+        for part in contents[-1].parts:
+            if part.text:
+                return part.text
+    return "" # Return empty string if no text content found
 
 @trace_span("format_response")
 def format_response(query: str, result: str, elapsed: float):
