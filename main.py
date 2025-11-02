@@ -4,7 +4,7 @@ import sys, os
 import time
 import subprocess
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
@@ -62,19 +62,8 @@ agent_state = {"ready": False, "agent": None, "llm": None, "logs": []}
 # === 啟動事件 ===
 @app.on_event("startup")
 async def startup_event():
-    # 啟動 telemetry server
-    telemetry_server_path = os.path.join(os.path.dirname(__file__), "telemetry", "telemetry_server.py")
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.abspath(os.path.dirname(__file__))
-    with open("telemetry_server_stdout.log", "w") as stdout_file, \
-         open("telemetry_server_stderr.log", "w") as stderr_file:
-        subprocess.Popen(
-            [sys.executable, telemetry_server_path],
-            env=env,
-            stdout=stdout_file,
-            stderr=stderr_file,
-        )
-    agent_state["logs"].append("📡 Telemetry server started. Check telemetry_server_stdout.log and telemetry_server_stderr.log for details.")
+    # Telemetry server functionality will be integrated directly into main.py
+    agent_state["logs"].append("📡 Telemetry functionality integrated.")
 
     setup_telemetry("job_guardian_backend")
     asyncio.create_task(start_agent())  # 背景啟動
@@ -178,6 +167,66 @@ async def query(request: Request):
         agent_state["logs"].append(err_msg)
         return JSONResponse({"error": str(e)}, status_code=500)
 
+
+import uvicorn
+
+from google.genai import types
+import aiofiles
+
+# ... (rest of existing imports)
+
+# Define LOG_FILE_PATH for integrated telemetry
+LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "telemetry", "mcp-activity.log")
+
+# ... (rest of main.py content)
+
+# === Telemetry API (Integrated from telemetry_server.py) ===
+@app.get("/telemetry/stream")
+async def stream_telemetry():
+    """
+    Streams telemetry data using Server-Sent Events (SSE) by tailing the log file.
+    """
+    async def event_generator():
+        # Ensure the log file exists
+        if not os.path.exists(LOG_FILE_PATH):
+            with open(LOG_FILE_PATH, "w") as f:
+                f.write("") # Create an empty file
+
+        async with aiofiles.open(LOG_FILE_PATH, mode="r") as f:
+            current_position = await f.tell()
+            while True:
+                await asyncio.sleep(0.1)  # Wait for new lines
+                # Check if the file has grown
+                new_size = os.path.getsize(LOG_FILE_PATH)
+                if new_size > current_position:
+                    await f.seek(current_position) # Seek to the last known position
+                    line = await f.readline()
+                    while line:
+                        yield f"data: {line.strip()}\n\n"
+                        current_position = await f.tell()
+                        line = await f.readline()
+                elif new_size < current_position: # File was truncated or reset
+                    await f.seek(0)
+                    current_position = 0
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/telemetry/recent")
+async def get_recent_telemetry():
+    """
+    Returns the last few lines of the telemetry log file.
+    """
+    if not os.path.exists(LOG_FILE_PATH):
+        return {"data": "Log file not found"}
+
+    lines = []
+    async with aiofiles.open(LOG_FILE_PATH, mode="r") as f:
+        # Read last 50 lines for example
+        # This is a simplified approach, for very large files, more efficient tailing might be needed
+        content = await f.read()
+        lines = content.splitlines()[-50:]
+
+    return {"data": "\n".join(lines)}
 
 # Mount the static files at the end
 from fastapi.staticfiles import StaticFiles

@@ -20,7 +20,8 @@ export function TelemetryStream() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:5001/telemetry/stream');
+    const telemetryServerUrl = process.env.NEXT_PUBLIC_TELEMETRY_SERVER_URL || 'http://localhost:8000';
+    const eventSource = new EventSource(`${telemetryServerUrl}/telemetry/stream`);
 
     eventSource.onmessage = (event) => {
       try {
