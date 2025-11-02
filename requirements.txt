@@ -16,3 +16,4 @@ opentelemetry-exporter-otlp
 opentelemetry-instrumentation
 google-genai
 aiofiles
+aiohttp
