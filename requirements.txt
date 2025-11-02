@@ -16,4 +16,3 @@ opentelemetry-exporter-otlp
 opentelemetry-instrumentation
 google-genai
 aiofiles
--e ./src/mcp_agent

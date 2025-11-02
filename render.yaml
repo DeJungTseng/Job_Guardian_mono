@@ -5,6 +5,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: '3.11'
+      - key: PYTHONPATH
+        value: /opt/render/project/src/src
     buildCommand: |
       pip install -r requirements.txt
       cd frontend && npm install && npm run build && npm run export
