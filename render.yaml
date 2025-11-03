@@ -7,5 +7,16 @@ services:
         value: '3.11'
     buildCommand: |
       pip install -r requirements.txt
+      echo "--- Building Frontend ---"
+      cd frontend
+      pwd
+      npm install
+      npm run build
+      npm run export
+      echo "--- Contents of frontend/out after build ---"
+      ls -l out
+      cd ..
+      echo "--- Contents of project root after frontend build ---"
+      ls -l frontend/out
       cd frontend && npm install && npm run build && npm run export
     startCommand: python main.py
