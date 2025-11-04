@@ -149,18 +149,18 @@ const ThreadSuggestions: FC = () => {
         },
         {
           title: "Labor Law Check",
-          label: "「請問誠品生活有沒有違反勞基法紀錄?」",
-          action: "查詢誠品生活是否有違反《勞動基準法》的紀錄",
+          label: "請問某公司有沒有違反勞基法紀錄?",
+          action: "請指引使用者輸入必要資訊查詢特定公司違反《勞動基準法》的紀錄",
         },
         {
           title: "Gender Equality Check",
-          label: "「請問誠品生活有沒有違反性平工作法紀錄?」",
-          action: "查詢誠品生活是否有違反《性別工作平等法》的紀錄",
+          label: "請問某公司有沒有違反性平工作法紀錄?",
+          action: "請指引使用者輸入必要資訊查詢特定公司違反《性別工作平等法》的紀錄",
         },
         {
           title: "Salary & Benefits",
-          label: "「查詢誠品生活的薪資福利」",
-          action: "查詢誠品生活的薪資、女性主管比例與員工福利資訊",
+          label: "查詢某公司的薪資福利",
+          action: "請指引使用者輸入必要資訊查詢特定公司的薪資、女性主管比例與員工福利資訊",
         },
       ].map((suggestedAction, index) => (
         <m.div
