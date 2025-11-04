@@ -80,26 +80,26 @@ def normalize_company_name(name: str) -> str:
     s = SUFFIX_PAT.sub("", s)
     return s
 
-
+# ====增加requests失效後fallback to data/資料夾的內容
 def _fetch_csv_rows(url: str) -> List[Dict[str, str]]:
     """
     下載 CSV → DictReader。
-    先嘗試 requests (UA 模擬 curl)，若失敗再 fallback httpx。
+    先嘗試 requests，再 fallback httpx。
+    若遠端失敗，改讀本地備份檔 (mcp_server/data/*.csv)。
     """
-    import httpx
+    import os, httpx, csv, io
 
-    # 嘗試多種解碼
     def _decode_content(content: bytes) -> str:
         for enc in ("utf-8", "cp950", "big5", "latin-1"):
             try:
                 return content.decode(enc)
             except UnicodeDecodeError:
                 continue
-        # 全部失敗就回傳 binary
         return content.decode("utf-8", errors="ignore")
 
-    # ---------- 1. 先用 requests ----------
+    # ---------- 1️⃣ requests 嘗試 ----------
     try:
+        import requests
         resp = requests.get(
             url,
             timeout=HTTP_TIMEOUT,
@@ -111,12 +111,13 @@ def _fetch_csv_rows(url: str) -> List[Dict[str, str]]:
         resp.raise_for_status()
         text = _decode_content(resp.content)
         rows = list(csv.DictReader(io.StringIO(text)))
-        return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in rows]
+        print(f"[INFO] requests 成功抓取 {url} ({len(rows)} rows)")
+        return [{(k or '').strip(): (v or '').strip() for k, v in r.items()} for r in rows]
 
     except Exception as e_req:
-        print(f"[WARN] requests 抓取失敗，改用 httpx: {e_req}")
+        print(f"[WARN] requests 抓取失敗 ({e_req})，改用 httpx...")
 
-    # ---------- 2. fallback httpx ----------
+    # ---------- 2️⃣ httpx fallback ----------
     try:
         with httpx.Client(
             http2=False,
@@ -131,10 +132,40 @@ def _fetch_csv_rows(url: str) -> List[Dict[str, str]]:
             resp.raise_for_status()
             text = _decode_content(resp.content)
             rows = list(csv.DictReader(io.StringIO(text)))
-            return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in rows]
+            print(f"[INFO] httpx 成功抓取 {url} ({len(rows)} rows)")
+            return [{(k or '').strip(): (v or '').strip() for k, v in r.items()} for r in rows]
 
     except Exception as e_httpx:
-        raise RuntimeError(f"requests + httpx 都無法抓取 {url}: {e_httpx}")
+        print(f"[WARN] httpx 抓取失敗 ({e_httpx})，改讀本地 CSV")
+
+    # ---------- 3️⃣ 本地 CSV fallback ----------
+    try:
+        # 根據 URL 名稱推測對應的檔案
+        if "t187ap46" in url or "esg" in url:
+            filename = "esg_hr.csv"
+        elif "030225" in url or "lab" in url:
+            filename = "lab_vio.csv"
+        elif "030226" in url or "ge" in url:
+            filename = "ge_vio.csv"
+        else:
+            filename = os.path.basename(url).split("?")[0]
+
+        local_path = os.path.join(os.path.dirname(__file__), "data", filename)
+        print(f"[INFO] 嘗試讀取本地備份 {local_path}")
+
+        if not os.path.exists(local_path):
+            raise FileNotFoundError(f"本地檔案不存在: {local_path}")
+
+        with open(local_path, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
+        rows = list(csv.DictReader(io.StringIO(text)))
+        print(f"[INFO] 已從本地 CSV 讀取 {len(rows)} rows")
+        return [{(k or '').strip(): (v or '').strip() for k, v in r.items()} for r in rows]
+
+    except Exception as e_local:
+        raise RuntimeError(f"requests + httpx + local 都無法取得 {url}: {e_local}")
+# ===================end of this change=============
+
 
 
 def _match_company(row_value: str, user_input: str) -> bool:
